@@ -79,6 +79,69 @@ Priority levels:
 - **P2 (Orange)**: Review later (60-70)
 - **P3 (Red)**: Reject (<60)
 
+### Comparing Two Candidates
+
+The dashboard provides a powerful side-by-side comparison feature to help you evaluate multiple candidates:
+
+#### How to Compare
+
+1. **Select First Candidate**:
+   - In the candidate table, find the candidate you want to compare
+   - Click the "Compare" button in the Actions column
+   - The candidate is now selected for comparison
+
+2. **Select Second Candidate**:
+   - Find another candidate in the table
+   - Click their "Compare" button
+   - A comparison panel will automatically appear showing both candidates
+
+3. **View Comparison**:
+   - When 2 candidates are selected, a detailed comparison table is displayed
+   - All metrics are shown side-by-side for easy evaluation:
+     - Overall Score
+     - Priority Level
+     - Assignment Score
+     - Video Score
+     - ATS Score
+     - GitHub Score
+     - Communication Score
+     - Review Status
+     - Shortlist Status
+
+4. **Add a Third Candidate**:
+   - Click "Compare" on a third candidate
+   - The new candidate replaces the first one, keeping the second
+   - Comparison automatically updates
+
+5. **Manage Comparison**:
+   - **Remove from Comparison**: Click the "Remove" button on any card view to deselect a candidate
+   - **Clear Comparison**: Click the "Clear Comparison" button to reset all selections
+
+#### Use Cases
+
+- **Quick Evaluation**: Compare top candidates to identify the strongest fits
+- **Decision Making**: See how candidates rank against each other across all metrics
+- **Shortlisting**: Compare candidates to make final shortlist decisions
+- **Score Analysis**: Understand individual candidate strengths and weaknesses relative to others
+
+### Data Persistence
+
+All your work is automatically saved to your browser's local storage:
+
+- **Auto-Save**: All changes are saved instantly
+  - Assignment ratings
+  - Video ratings and notes
+  - Shortlist status
+  - Review status
+  
+- **Persistent Data**: Your progress survives page refreshes
+  - Close the browser and come back later - all data is preserved
+  - Multiple sessions can continue from where you left off
+
+- **Reset Option**: Use the "Reset All Data" button in the header to start fresh
+  - A confirmation dialog prevents accidental resets
+  - Clears all evaluations and reloads default candidate data
+
 ## Development
 
 ### Available Scripts

@@ -141,12 +141,14 @@ function App() {
   const toggleComparison = (id) => {
     setComparisonCandidates(prev => {
       if (prev.includes(id)) {
+        // Remove if already selected
         return prev.filter(cId => cId !== id);
       } else if (prev.length < 2) {
+        // Add if less than 2 selected
         return [...prev, id];
       } else {
-        // Replace the last one with the new candidate
-        return [prev[1], id];
+        // Replace the first one with the new candidate when already have 2
+        return [id, prev[1]];
       }
     });
   };
@@ -402,6 +404,7 @@ function App() {
                       <th className="p-3 text-left border border-gray-600">Metric</th>
                       {comparisonCandidates.map(id => {
                         const candidate = candidates.find(c => c.id === id);
+                        if (!candidate) return null;
                         return (
                           <th key={id} className="p-3 text-center border border-gray-600">
                             <div>{candidate.name}</div>
@@ -427,6 +430,7 @@ function App() {
                         <td className="p-3 font-semibold border border-gray-600">{metric.label}</td>
                         {comparisonCandidates.map(id => {
                           const candidate = candidates.find(c => c.id === id);
+                          if (!candidate) return <td key={id} className="p-3 text-center border border-gray-600">N/A</td>;
                           let value = candidate[metric.key];
                           let displayValue = value;
                           
@@ -455,6 +459,7 @@ function App() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {comparisonCandidates.map(id => {
                   const candidate = candidates.find(c => c.id === id);
+                  if (!candidate) return null;
                   return (
                     <div key={id} className="bg-gray-700 p-4 rounded">
                       <div className="flex justify-between items-start mb-3">

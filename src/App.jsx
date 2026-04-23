@@ -1,13 +1,22 @@
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { candidates as initialCandidates } from './data';
 import { calculatePriority, getPriorityColor, getPriorityBgColor } from './utils';
+import { loadCandidatesFromStorage, saveCandidatesToStorage } from './storage';
 
 function App() {
-  const [candidates, setCandidates] = useState(initialCandidates.map(c => ({
-    ...c,
-    ...calculatePriority(c)
-  })));
+  // Initialize candidates from localStorage or use default data
+  const [candidates, setCandidates] = useState(() => {
+    const stored = loadCandidatesFromStorage();
+    if (stored) {
+      return stored;
+    }
+    return initialCandidates.map(c => ({
+      ...c,
+      ...calculatePriority(c)
+    }));
+  });
+  
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
@@ -22,6 +31,11 @@ function App() {
   const [sortBy, setSortBy] = useState('priority');
   const [sortOrder, setSortOrder] = useState('desc');
   const [comparisonCandidates, setComparisonCandidates] = useState([]);
+
+  // Save to localStorage whenever candidates change
+  useEffect(() => {
+    saveCandidatesToStorage(candidates);
+  }, [candidates]);
 
   const weights = {
     ui_clarity: 25,
@@ -128,11 +142,29 @@ function App() {
     setComparisonCandidates(prev => {
       if (prev.includes(id)) {
         return prev.filter(cId => cId !== id);
-      } else if (prev.length < 3) {
+      } else if (prev.length < 2) {
         return [...prev, id];
+      } else {
+        // Replace the last one with the new candidate
+        return [prev[1], id];
       }
-      return prev;
     });
+  };
+
+  const clearComparison = () => {
+    setComparisonCandidates([]);
+  };
+
+  const resetAllData = () => {
+    if (confirm('Are you sure you want to reset all changes and reload default data?')) {
+      const freshData = initialCandidates.map(c => ({
+        ...c,
+        ...calculatePriority(c)
+      }));
+      setCandidates(freshData);
+      setComparisonCandidates([]);
+      setSelectedCandidate(null);
+    }
   };
 
   return (
@@ -140,7 +172,15 @@ function App() {
       {/* Header Summary */}
       <header className="bg-gray-800 p-4 shadow-lg">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl font-bold mb-4">Candidate Review Dashboard</h1>
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold">Candidate Review Dashboard</h1>
+            <button
+              onClick={resetAllData}
+              className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm font-semibold"
+            >
+              Reset All Data
+            </button>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-gray-700 p-3 rounded">
               <div className="text-2xl font-bold">{summary.total}</div>
@@ -342,27 +382,136 @@ function App() {
         {/* Comparison Mode */}
         {comparisonCandidates.length > 0 && (
           <div className="mt-6 bg-gray-800 p-4 rounded-lg">
-            <h2 className="text-lg font-semibold mb-4">Candidate Comparison</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {comparisonCandidates.map(id => {
-                const candidate = candidates.find(c => c.id === id);
-                return (
-                  <div key={id} className="bg-gray-700 p-4 rounded">
-                    <h3 className="font-bold mb-2">{candidate.name}</h3>
-                    <div className="space-y-1 text-sm">
-                      <div>Assignment: {candidate.assignment_score}</div>
-                      <div>Video: {candidate.video_score}</div>
-                      <div>ATS: {candidate.ats_score}</div>
-                      <div>GitHub: {candidate.github_score}</div>
-                      <div>Communication: {candidate.communication_score}</div>
-                      <div className={`font-bold ${getPriorityColor(candidate.priority)}`}>
-                        Priority: {candidate.priority} ({candidate.score})
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">
+                Candidate Comparison ({comparisonCandidates.length}/2 selected)
+              </h2>
+              <button
+                onClick={clearComparison}
+                className="bg-gray-600 hover:bg-gray-700 px-3 py-1 rounded text-sm"
+              >
+                Clear Comparison
+              </button>
+            </div>
+            
+            {comparisonCandidates.length === 2 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-700">
+                      <th className="p-3 text-left border border-gray-600">Metric</th>
+                      {comparisonCandidates.map(id => {
+                        const candidate = candidates.find(c => c.id === id);
+                        return (
+                          <th key={id} className="p-3 text-center border border-gray-600">
+                            <div>{candidate.name}</div>
+                            <div className="text-xs text-gray-400">{candidate.college}</div>
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { label: 'Overall Score', key: 'score' },
+                      { label: 'Priority', key: 'priority' },
+                      { label: 'Assignment Score', key: 'assignment_score' },
+                      { label: 'Video Score', key: 'video_score' },
+                      { label: 'ATS Score', key: 'ats_score' },
+                      { label: 'GitHub Score', key: 'github_score' },
+                      { label: 'Communication Score', key: 'communication_score' },
+                      { label: 'Reviewed', key: 'reviewed' },
+                      { label: 'Shortlisted', key: 'shortlisted' }
+                    ].map((metric, idx) => (
+                      <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-750' : 'bg-gray-700'}>
+                        <td className="p-3 font-semibold border border-gray-600">{metric.label}</td>
+                        {comparisonCandidates.map(id => {
+                          const candidate = candidates.find(c => c.id === id);
+                          let value = candidate[metric.key];
+                          let displayValue = value;
+                          
+                          if (metric.key === 'priority') {
+                            displayValue = (
+                              <span className={`px-2 py-1 rounded text-xs font-bold ${getPriorityBgColor(value)}`}>
+                                {value}
+                              </span>
+                            );
+                          } else if (metric.key === 'reviewed' || metric.key === 'shortlisted') {
+                            displayValue = value ? '✓' : '✗';
+                          }
+                          
+                          return (
+                            <td key={id} className="p-3 text-center border border-gray-600">
+                              {displayValue}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {comparisonCandidates.map(id => {
+                  const candidate = candidates.find(c => c.id === id);
+                  return (
+                    <div key={id} className="bg-gray-700 p-4 rounded">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h3 className="font-bold text-lg">{candidate.name}</h3>
+                          <p className="text-sm text-gray-400">{candidate.college}</p>
+                        </div>
+                        <button
+                          onClick={() => toggleComparison(candidate.id)}
+                          className="bg-red-600 hover:bg-red-700 px-2 py-1 rounded text-xs"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Overall Score:</span>
+                          <span className="font-semibold">{candidate.score}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Priority:</span>
+                          <span className={`font-semibold ${getPriorityColor(candidate.priority)}`}>{candidate.priority}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Assignment:</span>
+                          <span className="font-semibold">{candidate.assignment_score}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Video:</span>
+                          <span className="font-semibold">{candidate.video_score}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>ATS:</span>
+                          <span className="font-semibold">{candidate.ats_score}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>GitHub:</span>
+                          <span className="font-semibold">{candidate.github_score}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Communication:</span>
+                          <span className="font-semibold">{candidate.communication_score}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Reviewed:</span>
+                          <span className="font-semibold">{candidate.reviewed ? '✓' : '✗'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Shortlisted:</span>
+                          <span className="font-semibold">{candidate.shortlisted ? '✓' : '✗'}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 

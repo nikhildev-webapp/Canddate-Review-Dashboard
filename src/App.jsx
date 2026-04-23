@@ -31,6 +31,15 @@ function App() {
   const [sortBy, setSortBy] = useState('priority');
   const [sortOrder, setSortOrder] = useState('desc');
   const [comparisonCandidates, setComparisonCandidates] = useState([]);
+  const [comparisonView, setComparisonView] = useState('overview'); // overview, assignment, video, detailed
+
+  // Comparison view tabs
+  const comparisonTabs = [
+    { id: 'overview', label: 'Overview', icon: '📊' },
+    { id: 'assignment', label: 'Assignment', icon: '💻' },
+    { id: 'video', label: 'Video', icon: '🎥' },
+    { id: 'detailed', label: 'Detailed', icon: '📋' }
+  ];
 
   // Save to localStorage whenever candidates change
   useEffect(() => {

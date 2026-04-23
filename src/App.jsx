@@ -71,10 +71,13 @@ function App() {
     filtered.sort((a, b) => {
       let aVal, bVal;
       switch (sortBy) {
-        case 'priority':
-          aVal = a.priority;
-          bVal = b.priority;
+        case 'priority': {
+          // Convert priority strings (P0, P1, P2, P3) to numbers for correct sorting
+          const priorityMap = { 'P0': 0, 'P1': 1, 'P2': 2, 'P3': 3 };
+          aVal = priorityMap[a.priority] ?? 999;
+          bVal = priorityMap[b.priority] ?? 999;
           break;
+        }
         case 'assignment':
           aVal = a.assignment_score;
           bVal = b.assignment_score;
@@ -110,11 +113,26 @@ function App() {
   };
 
   const toggleShortlist = (id) => {
-    updateCandidate(id, { shortlisted: !candidates.find(c => c.id === id).shortlisted });
+    const candidate = candidates.find(c => c.id === id);
+    updateCandidate(id, { shortlisted: !candidate.shortlisted });
+    // Update selectedCandidate to keep UI in sync
+    if (selectedCandidate?.id === id) {
+      setSelectedCandidate(prev => ({
+        ...prev,
+        shortlisted: !prev.shortlisted
+      }));
+    }
   };
 
   const markReviewed = (id) => {
     updateCandidate(id, { reviewed: true });
+    // Update selectedCandidate to keep UI in sync
+    if (selectedCandidate?.id === id) {
+      setSelectedCandidate(prev => ({
+        ...prev,
+        reviewed: true
+      }));
+    }
   };
 
   const updateAssignmentRating = (id, rating, value) => {
@@ -122,6 +140,13 @@ function App() {
     updateCandidate(id, {
       assignment_ratings: { ...candidate.assignment_ratings, [rating]: value }
     });
+    // Update selectedCandidate to keep UI in sync
+    if (selectedCandidate?.id === id) {
+      setSelectedCandidate(prev => ({
+        ...prev,
+        assignment_ratings: { ...prev.assignment_ratings, [rating]: value }
+      }));
+    }
   };
 
   const updateVideoRating = (id, rating, value) => {
@@ -129,6 +154,13 @@ function App() {
     updateCandidate(id, {
       video_ratings: { ...candidate.video_ratings, [rating]: value }
     });
+    // Update selectedCandidate to keep UI in sync
+    if (selectedCandidate?.id === id) {
+      setSelectedCandidate(prev => ({
+        ...prev,
+        video_ratings: { ...prev.video_ratings, [rating]: value }
+      }));
+    }
   };
 
   const addVideoNote = (id, note) => {
@@ -136,6 +168,13 @@ function App() {
     updateCandidate(id, {
       video_notes: [...candidate.video_notes, note]
     });
+    // Update selectedCandidate to keep UI in sync
+    if (selectedCandidate?.id === id) {
+      setSelectedCandidate(prev => ({
+        ...prev,
+        video_notes: [...prev.video_notes, note]
+      }));
+    }
   };
 
   const toggleComparison = (id) => {

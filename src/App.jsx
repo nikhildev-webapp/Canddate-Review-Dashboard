@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+/* eslint-disable react/prop-types */
 
 const COLLEGES = [
   "IIT Delhi","IIT Bombay","IIT Madras","NIT Trichy","BITS Pilani","IIT Kharagpur",
@@ -463,7 +464,7 @@ export default function App() {
 
               {tab === "assignment" && (
                 <div>
-                  <div style={{ fontSize: 12, color: "#64748b", marginBottom: 16 }}>Rate the candidate's assignment submission across key dimensions.</div>
+                  <div style={{ fontSize: 12, color: "#64748b", marginBottom: 16 }}>Rate the candidate&apos;s assignment submission across key dimensions.</div>
                   {CRITERIA.map(c => {
                     const val = ratings[selected.id]?.[c.key] ?? 3;
                     return (
@@ -500,7 +501,7 @@ export default function App() {
 
               {tab === "video" && (
                 <div>
-                  <div style={{ fontSize: 12, color: "#64748b", marginBottom: 16 }}>Evaluate the candidate's video explanation and communication skills.</div>
+                  <div style={{ fontSize: 12, color: "#64748b", marginBottom: 16 }}>Evaluate the candidate&apos;s video explanation and communication skills.</div>
                   {VIDEO_CRITERIA.map(c => {
                     const val = videoRatings[selected.id]?.[c.key] ?? 3;
                     return (
